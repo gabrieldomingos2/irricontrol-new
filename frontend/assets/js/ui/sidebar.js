@@ -12,6 +12,11 @@
   btn.addEventListener("click", () => {
     app.classList.toggle("is-collapsed");
     localStorage.setItem("ic_sidebar_collapsed", app.classList.contains("is-collapsed") ? "1" : "0");
+
+    // Notifica que o layout mudou (ex.: largura do mapa)
+    window.dispatchEvent(new CustomEvent("ic:layout-change", {
+      detail: { sidebarCollapsed: app.classList.contains("is-collapsed") }
+    }));
   });
 
   // Mantém teu highlight de rota (se você quiser)

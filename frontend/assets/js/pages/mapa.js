@@ -8,6 +8,9 @@
     zoomControl: true
   }).setView([-16.767, -47.613], 12);
 
+  // Expõe referência para debug/integrações e corrige resize após mudanças de layout
+  window.icMap = map;
+
   // Base: Satélite (Esri World Imagery)
   L.tileLayer(
     "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -28,6 +31,20 @@
 
   // Exemplo: um marcador só pra você ver que tá vivo
   L.marker([-16.767, -47.613]).addTo(map).bindPopup("Mapa carregado ✅");
+
+  const invalidate = () => {
+    map.invalidateSize({ pan: false, debounceMoveend: true });
+  };
+
+  // Resize normal da janela
+  window.addEventListener("resize", invalidate);
+
+  // Mudanças de layout (ex.: colapsar sidebar)
+  window.addEventListener("ic:layout-change", () => {
+    // rAF + pequeno atraso para pegar o layout já aplicado
+    requestAnimationFrame(invalidate);
+    setTimeout(invalidate, 180);
+  });
 })();
 
 (function initMapCard() {
