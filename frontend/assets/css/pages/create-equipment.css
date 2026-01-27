@@ -515,14 +515,14 @@ body.is-modal-open{ overflow: hidden; }
   display:flex;
   align-items:center;
   justify-content:center;
-  width: 18px;
-  height: 18px;
+  width: 22px;
+  height: 22px;
   flex: 0 0 auto;
 }
 .func-row__check input{
   appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   border-radius: 4px;
   border: 1.5px solid #cbd5e1;
   background: #fff;
@@ -540,13 +540,13 @@ body.is-modal-open{ overflow: hidden; }
 .func-row__check input:checked + .func-row__checkmark::after{
   content: "";
   position: absolute;
-  width: 6px;
-  height: 10px;
+  width: 7px;
+  height: 11px;
   border: 2px solid #fff;
   border-top: 0;
   border-left: 0;
   transform: rotate(45deg);
-  left: 5px;
+  left: 6px;
   top: 1px;
 }
 .func-row__checkmark{
@@ -602,35 +602,38 @@ body.is-modal-open{ overflow: hidden; }
 }
 
 .func-row.is-active{
-  border-color: rgba(22,163,74,.45);
-  background: rgba(22,163,74,.06);
+  border-color: rgba(15,23,32,.10);
+  background: transparent;
 }
 .func-row.is-active .func-row__ico{
   background: rgba(22,163,74,.16);
   color:#16a34a;
 }
 .func-row.is-active .func-row__select{
-  border-color: rgba(22,163,74,.45);
+  border-color: rgba(15,23,32,.14);
 }
 
 .func-row.is-pending{
-  border-color: rgba(245,158,11,.45);
-  background: rgba(245,158,11,.08);
-}
-.func-row.is-pending .func-row__ico{
-  background: rgba(245,158,11,.18);
-  color:#d97706;
-}
-.func-row.is-pending .func-row__select{
-  border-color: rgba(245,158,11,.6);
-  box-shadow: 0 0 0 2px rgba(245,158,11,.16);
+  border-color: rgba(15,23,32,.10);
+  background: transparent; 
 }
 
+.func-row.is-pending .func-row__ico{
+  background: rgba(22,163,74,.16);
+  color:#16a34a;
+}
+
+.func-row.is-pending .func-row__select{
+  border-color: rgba(15,23,32,.14);
+  box-shadow: none;
+}
+
+
 .func-row.is-inactive{
-  background:#f8fafc;
+  background:#ffffff;
 }
 .func-row.is-inactive .func-row__select{
-  background:#f8fafc;
+  background:#ffffff;
   color:#94a3b8;
   border-color: rgba(15,23,32,.08);
 }
@@ -913,13 +916,91 @@ body.is-modal-open{ overflow: hidden; }
   flex: 1;
   border: 1px solid rgba(15,23,32,.14);
   border-radius: 10px;
-  padding: 10px 12px;
+  padding: 12px 14px;
+  min-height: 42px;
   outline: none;
   background:#fff;
 }
 .func-row__select:focus{
   border-color:#16a34a;
   box-shadow: 0 0 0 3px rgba(22,163,74,.12);
+}
+.func-row{
+  overflow: visible;
+}
+
+/* Custom select (Step 4) */
+.func-select{
+  position: relative;
+  min-width: 180px;
+}
+.func-select__trigger{
+  width: 100%;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+  border: 1px solid rgba(15,23,32,.14);
+  border-radius: 10px;
+  padding: 12px 14px;
+  min-height: 42px;
+  background:#fff;
+  cursor: pointer;
+  font-size: 13px;
+}
+.func-select__trigger:focus-visible{
+  outline: none;
+  border-color:#16a34a;
+  box-shadow: 0 0 0 3px rgba(22,163,74,.12);
+}
+.func-select__chev{
+  color:#64748b;
+}
+.func-select__list{
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin-top: 6px;
+  background: #ffffff;
+  border: 1px solid rgba(15,23,32,.14);
+  border-radius: 10px;
+  box-shadow: 0 14px 28px rgba(15,23,42,.12);
+  padding: 6px 0;
+  display: none;
+  max-height: 220px;
+  overflow: auto;
+  z-index: 10;
+}
+.func-select.is-open .func-select__list{
+  display: block;
+}
+.func-select__option{
+  width: 100%;
+  text-align: left;
+  background: #ffffff;
+  border: 0;
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 13px;
+}
+.func-select__option:hover{
+  background: #dcfce7;
+}
+.func-select__option.is-selected{
+  background: #ffffff;
+}
+.func-select.is-disabled{
+  opacity: .55;
+  pointer-events: none;
+}
+.func-row__select option{
+  background: #ffffff;
+}
+.func-row__select option:hover{
+  background: #dcfce7;
+}
+.func-row__select option:checked{
+  background: #dcfce7;
 }
 
 /* =========================================================
@@ -948,7 +1029,13 @@ body.is-modal-open{ overflow: hidden; }
 .equip-summary{
   margin-top: 2px;
   --summary-strong: #0b0f19;
-  --summary-strong-weight: 800;
+  --summary-strong-weight: 400;
+}
+
+/* Step 6 (Resumo): remover negrito */
+.equip-summary,
+.equip-summary *{
+  font-weight: 400;
 }
 
 .summary-card{
@@ -1313,6 +1400,21 @@ body.is-modal-open{ overflow: hidden; }
 }
 .summary-btn--primary:hover{
   background: rgba(22,163,74,.12);
+}
+
+/* Step 6 (Resumo): remover negrito (override final) */
+.equip-summary .equip-page__title,
+.equip-summary .equip-page__sub,
+.equip-summary .summary-card,
+.equip-summary .summary-card * ,
+.equip-summary .summary-progress *,
+.equip-summary .summary-actions *{
+  font-weight: 400;
+}
+.equip-summary .summary-actions .fa-solid,
+.equip-summary .summary-actions i{
+  font-weight: 900;
+  font-family: "Font Awesome 6 Free";
 }
 
 /* =========================================================
@@ -1748,3 +1850,50 @@ body.is-modal-open{ overflow: hidden; }
 #createEquipFooter.no-prev{
   justify-content: flex-end;
 }
+
+/* FIX Step 4 — FUNÇÕES (remove faixa branca e unifica fundo) */
+.mod-panel{
+  background: #ffffff;
+  border-color: rgba(15,23,32,.10);
+}
+
+.func-list{ background: transparent; }
+
+.func-row{
+  background: transparent;            /* <<< mata a faixa branca */
+  border-color: rgba(15,23,32,.10);
+}
+
+.func-row__head{
+  background: #ffffff;
+  border-bottom: none;
+}
+
+.func-row__body{
+  background: #ffffff;
+  border-top: none;
+}
+
+/* Ativo: não pinta a linha inteira (apenas o check mostra seleção) */
+.func-row.is-active .func-row__head,
+.func-row.is-active .func-row__body{
+  background: #ffffff;
+  border-color: rgba(15,23,32,.08);
+}
+.func-row.is-active .func-row__body{
+  border-top-color: transparent;
+}
+.func-row.is-active .func-row__select{
+  border-color: rgba(15,23,32,.14);
+  background: #ffffff;
+}
+.func-row.is-pending .func-row__head,
+.func-row.is-pending .func-row__body{
+  background: #ffffff;
+  border-color: rgba(15,23,32,.08);
+}
+.func-row.is-pending .func-row__select{
+  border-color: rgba(15,23,32,.14);
+  background: #ffffff;
+}
+

@@ -157,7 +157,7 @@
     // placeholder padrão
     renderPlaceholder(label);
 
-    // Delegação: Irripump + Medidor (5 steps)
+    // Delegação: Irripump + Medidor (6 steps)
     if (selectedType === "irripump" || selectedType === "medidor") {
       const handler = window.IcEquipamentos?.[selectedType];
       if (!handler) return;
@@ -165,10 +165,13 @@
       const st = (stateByType[selectedType] ||= {});
 
       if (label === "Cadastro inicial") handler.renderStep2(dynamicHost, st);
-      if (label === "Módulos") handler.renderStep3(dynamicHost, st);
-      if (label === "Funções") handler.renderStep4(dynamicHost, st);
-      if (label === "Vincular equipamento") handler.renderStep5(dynamicHost, st);
-      if (label === "Resumo") handler.renderStep5(dynamicHost, st);
+      else if (label === "Módulos") handler.renderStep3(dynamicHost, st);
+      else if (label === "Funções") handler.renderStep4(dynamicHost, st);
+      else if (label === "Vincular equipamento") handler.renderStep5(dynamicHost, st);
+      else if (label === "Resumo") {
+        if (typeof handler.renderStep6 === "function") handler.renderStep6(dynamicHost, st);
+        else renderPlaceholder("Resumo");
+      }
     }
   }
 

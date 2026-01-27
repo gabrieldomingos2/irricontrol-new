@@ -393,13 +393,15 @@
         .filter(Boolean)
         .join(" ");
 
-      const options = [
-        `<option value="">Selecionar tipo...</option>`,
-        ...f.options.map((opt) => {
+      const options = f.options
+        .map((opt) => {
           const val = escapeHtml(opt);
-          return `<option value="${val}" ${selected === opt ? "selected" : ""}>${val}</option>`;
-        }),
-      ].join("");
+          const isSelected = selected === opt ? "is-selected" : "";
+          return `<button type="button" class="func-select__option ${isSelected}" data-action="func-select-option" data-key="${escapeHtml(
+            f.key
+          )}" data-value="${val}">${val}</button>`;
+        })
+        .join("");
 
       return `
         <div class="${rowClass}" data-func="${escapeHtml(f.key)}">
@@ -424,14 +426,21 @@
           </label>
 
           <div class="func-row__body ${checked ? "" : "is-disabled"}">
-            <select
-              class="func-row__select"
-              data-action="func-select"
-              data-key="${escapeHtml(f.key)}"
-              ${checked ? "" : "disabled"}
-            >
-              ${options}
-            </select>
+            <div class="func-select ${checked ? "" : "is-disabled"}" data-key="${escapeHtml(f.key)}">
+              <button
+                type="button"
+                class="func-select__trigger"
+                data-action="func-select-toggle"
+                data-key="${escapeHtml(f.key)}"
+                ${checked ? "" : "disabled"}
+              >
+                <span class="func-select__label">${escapeHtml(selected || "Selecionar tipo...")}</span>
+                <span class="func-select__chev"><i class="fa-solid fa-chevron-down"></i></span>
+              </button>
+              <div class="func-select__list" role="listbox">
+                ${options}
+              </div>
+            </div>
           </div>
         </div>
       `;
@@ -500,35 +509,77 @@
           // habilita/desabilita o select do mesmo bloco
           const row = el.closest(".func-row");
           const body = row?.querySelector(".func-row__body");
-          const sel = row?.querySelector(".func-row__select");
+          const selectWrap = row?.querySelector(".func-select");
+          const trigger = row?.querySelector(".func-select__trigger");
+          const label = row?.querySelector(".func-select__label");
+          const options = row?.querySelectorAll(".func-select__option");
 
           if (body) body.classList.toggle("is-disabled", !checked);
-          if (sel) {
-            sel.disabled = !checked;
-            if (!checked) sel.value = "";
+          if (selectWrap) selectWrap.classList.toggle("is-disabled", !checked);
+          if (trigger) trigger.disabled = !checked;
+          if (!checked) {
+            if (label) label.textContent = "Selecionar tipo...";
+            options?.forEach((opt) => opt.classList.remove("is-selected"));
+            if (selectWrap) selectWrap.classList.remove("is-open");
           }
           return;
         }
-
-        // Select dropdown
-        if (action === "func-select") {
-          const key = el.getAttribute("data-key");
-          state.funcParams[key] = el.value || "";
-        }
       };
 
-      // Botão Excluir (opcional) (mesma lógica)
       container.onclick = (e) => {
-        const btn = e.target.closest("[data-action]");
-        if (!btn) return;
+        const target = e.target;
+        if (!(target instanceof Element)) return;
 
-        if (btn.dataset.action === "ip-mod-del-first") {
+        const actionEl = target.closest("[data-action]");
+        const action = actionEl?.getAttribute("data-action");
+        if (!action) {
+          // close open selects when clicking elsewhere inside container
+          container
+            .querySelectorAll(".func-select.is-open")
+            .forEach((el) => el.classList.remove("is-open"));
+          return;
+        }
+
+        if (action === "ip-mod-del-first") {
           state.modules = (state.modules || []).slice(1);
           state.funcs = {};
           state.funcParams = {};
           this.renderStep4(container, state);
+          return;
+        }
+
+        if (action === "func-select-toggle") {
+          const key = actionEl.getAttribute("data-key");
+          const wrap = container.querySelector(`.func-select[data-key="${key}"]`);
+          if (wrap?.classList.contains("is-disabled")) return;
+
+          container
+            .querySelectorAll(".func-select.is-open")
+            .forEach((el) => {
+              if (el !== wrap) el.classList.remove("is-open");
+            });
+          wrap?.classList.toggle("is-open");
+          return;
+        }
+
+        if (action === "func-select-option") {
+          const key = actionEl.getAttribute("data-key");
+          const value = actionEl.getAttribute("data-value") || "";
+          state.funcParams[key] = value;
+
+          const wrap = container.querySelector(`.func-select[data-key="${key}"]`);
+          const label = wrap?.querySelector(".func-select__label");
+          const options = wrap?.querySelectorAll(".func-select__option");
+          if (label) label.textContent = value;
+          options?.forEach((opt) => opt.classList.toggle("is-selected", opt === actionEl));
+          wrap?.classList.remove("is-open");
+          // re-render to update "pendente" badge and stats
+          this.renderStep4(container, state);
+          return;
         }
       };
+
+      // Botao Excluir (opcional) tratado no handler acima
     },
 
     // =================
