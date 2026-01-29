@@ -5,15 +5,15 @@
   flex-direction:column;
   align-items:center;
   gap: 6px;
-  padding-bottom: 10px;
+  padding-bottom: 6px;
 }
 .brand__logo{
-  width: 200px;
+  width: 150px;
   max-width: 100%;
   height: auto;
   filter: none;
-  image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
+  display: block;
+  image-rendering: auto;
 }
 .brand__sub{
   font-size: 10px;
@@ -38,22 +38,30 @@
 }
 .input--dark::placeholder{ color: rgba(255,255,255,.55); }
 
+/* Sidebar search menor */
+.sidebar__search .input--dark{
+  padding: 8px 10px;
+  font-size: 11px;
+  border-radius: 9px;
+}
+
 /* Nav */
 .nav__section{ margin-top: 6px; }
 .nav__title{
-  font-size: 11px;
+  font-size: 8px;
   color: rgba(255,255,255,.55);
   letter-spacing: 1px;
-  margin: 10px 6px 8px;
+  margin: 10px 8px 8px;
 }
 
 .nav__item{
   display:flex;
   align-items:center;
-  gap: 10px;
-  padding: 12px 12px;
+  gap: 6px;
+  padding: 9px 8px;
   border-radius: 12px;
   color: var(--sidebarText);
+  font-size: 11px;
   transition: background .12s ease, box-shadow .12s ease;
 }
 .nav__item:hover{
@@ -64,13 +72,13 @@
   box-shadow: inset 0 0 0 0.5px rgba(22,163,74,.10);
 }
 .nav__ico{
-  width: 20px;
+  width: 16px;
   text-align:center;
   display:inline-flex;
   align-items:center;
   justify-content:center;
   opacity:.9;
-  font-size: 19px;
+  font-size: 14px;
   line-height: 1;
   color: #fff;
 }
@@ -129,18 +137,29 @@
 
 /* Botão do brand */
 .brand-btn{
-  width: 100%;
+  width: fit-content;
   border: none;
   background: transparent;
   cursor: pointer;
-  padding: 8px 6px;
+  padding: 6px 0 10px;
   border-radius: 14px;
   display:flex;
+  flex-direction: column;
   align-items:center;
   justify-content:center;
 }
 .brand-btn:hover{
   background: transparent;
+}
+
+.brand-btn::after{
+  content:"";
+  display:block;
+  width: 100%;
+  margin: 8px 0 0;
+  height: 1px;
+  background: rgba(255,255,255,.10);
+  border-radius: 999px;
 }
 
 /* Controle de qual logo aparece */
@@ -149,7 +168,14 @@
 .app.is-collapsed .brand__logo--full{ display:none; }
 .app.is-collapsed .brand__logo--mini{
   display:block;
-  width: 28px;
+  width: 20px;
+}
+
+/* Centraliza logo no modo colapsado */
+.app.is-collapsed .sidebar__brand{ align-items:center; }
+.app.is-collapsed .brand-btn{
+  justify-content:center;
+  width: 20px;
 }
 
 /* Subtítulo some no colapsado */
@@ -162,9 +188,9 @@
 /* Nav item centraliza ícone */
 .app.is-collapsed .nav__item{
   justify-content:center;
-  padding: 12px;
+  padding: 9px;
 }
 .app.is-collapsed .nav__ico{
   width: auto;
-  font-size: 20px;
+  font-size: 15px;
 }

@@ -83,7 +83,7 @@
       const loc = state.loc ?? "";
 
       container.innerHTML = `
-        <div class="equip-page">
+        <div class="equip-page equip-page--link">
           <div class="equip-page__title"></div>
           <div class="equip-page__sub"></div>
 

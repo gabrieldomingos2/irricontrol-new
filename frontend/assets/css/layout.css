@@ -6,13 +6,18 @@
 
 /* Sidebar */
 .sidebar{
-  width: 260px;
+  width: 205px;
   background: linear-gradient(180deg, var(--sidebar), var(--sidebar2));
   color: var(--sidebarText);
-  padding: 18px 16px;
+  padding: 12px 12px;
   display:flex;
   flex-direction:column;
-  gap: 14px;
+  gap: 10px;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  align-self: flex-start;
 }
 
 /* Main agora é 100% mapa */

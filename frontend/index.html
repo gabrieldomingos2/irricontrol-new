@@ -11,6 +11,8 @@
   <link rel="stylesheet" href="./assets/css/layout.css">
   <link rel="stylesheet" href="./assets/css/components.css">
   <link rel="stylesheet" href="./assets/css/pages/mapa.css">
+  <link rel="stylesheet" href="./assets/css/pages/pluviometria.css">
+  <link rel="stylesheet" href="./assets/css/pages/pluviometria-edit.css">
   <link rel="stylesheet" href="./assets/css/pages/create-equipment.css">
 
   <!-- Icons -->
@@ -125,10 +127,10 @@
 
     <!-- ÁREA DO MAPA (tela toda fora do sidebar) -->
     <main class="main main--map">
-      <aside class="map-card" aria-label="Resumo da fazenda">
+      <aside class="map-card" id="mapCard" aria-label="Resumo da fazenda">
         <header class="map-card__header">
           <div class="map-card__title">
-            <h2>Decisão Morena</h2>
+            <h2>Fazenda Santa Clara</h2>
           </div>
           <button class="map-card__edit" type="button" aria-label="Editar fazenda">
             <i class="fa-solid fa-pen"></i>
@@ -290,6 +292,7 @@
       </aside>
 
       <div id="map" class="map"></div>
+      <div id="pageSlot" aria-live="polite"></div>
     </main>
 
   </div>
@@ -421,12 +424,15 @@
   <script src="./assets/js/ui/sidebar.js"></script>
   <script src="./assets/js/pages/mapa.js"></script>
 
-  <!--equipamentos -->
+  <!-- equipamentos -->
   <script src="./assets/js/pages/equipamentos/irripump.js"></script>
   <script src="./assets/js/pages/equipamentos/medidor.js"></script>
 
+  <!-- pages -->
   <script src="./assets/js/pages/create-equipment.js"></script>
+  <script src="./assets/js/pages/pluviometria.js"></script>
   <script src="./assets/js/app.js"></script>
+
 </body>
 </html>
 

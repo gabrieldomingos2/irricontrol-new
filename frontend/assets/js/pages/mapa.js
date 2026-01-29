@@ -5,7 +5,8 @@
 
   // Centro inicial (ajusta depois pra sua fazenda)
   const map = L.map("map", {
-    zoomControl: true
+    zoomControl: true,
+    scrollWheelZoom: false
   }).setView([-16.767, -47.613], 12);
 
   // Expõe referência para debug/integrações e corrige resize após mudanças de layout
@@ -31,6 +32,37 @@
 
   // Exemplo: um marcador só pra você ver que tá vivo
   L.marker([-16.767, -47.613]).addTo(map).bindPopup("Mapa carregado ✅");
+
+  // Hint de zoom com Ctrl + scroll
+  const zoomHint = document.createElement("div");
+  zoomHint.className = "map-zoom-hint";
+  zoomHint.textContent = "Use ctrl + scroll to zoom the map";
+  el.appendChild(zoomHint);
+
+  let hintTimer = null;
+  const showZoomHint = () => {
+    zoomHint.classList.add("is-visible");
+    if (hintTimer) clearTimeout(hintTimer);
+    hintTimer = setTimeout(() => {
+      zoomHint.classList.remove("is-visible");
+    }, 1200);
+  };
+
+  el.addEventListener("wheel", (e) => {
+    if (!e.ctrlKey) showZoomHint();
+  }, { passive: true });
+
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Control") map.scrollWheelZoom.enable();
+  });
+
+  window.addEventListener("keyup", (e) => {
+    if (e.key === "Control") map.scrollWheelZoom.disable();
+  });
+
+  window.addEventListener("blur", () => {
+    map.scrollWheelZoom.disable();
+  });
 
   const invalidate = () => {
     map.invalidateSize({ pan: false, debounceMoveend: true });

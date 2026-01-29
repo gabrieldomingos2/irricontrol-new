@@ -1,0 +1,583 @@
+<section class="pluv" id="pluvPanel" aria-label="Pluviometria">
+  <!-- Header fixo (estilo da print) -->
+  <header class="pluv-header" aria-label="Cabeçalho da fazenda">
+    <div class="pluv-header__left">
+      <div class="pluv-header__icon" aria-hidden="true">
+        <i class="fa-solid fa-cloud-rain"></i>
+      </div>
+      <div class="pluv-header__text">
+        <div class="pluv-header__title">Pluviômetria</div>
+        <div class="pluv-header__subtitle">Monitoramento e análise de precipitação</div>
+      </div>
+    </div>
+
+    <div class="pluv-header__right">
+      <div class="pluv-header__farm">
+        <i class="fa-solid fa-location-dot" aria-hidden="true"></i>
+        <span>Fazenda Santa Clara</span>
+        <span class="pluv-header__sep">•</span>
+        <span class="pluv-header__count">4 pluviômetros</span>
+      </div>
+      <button class="pluv-header__gear pluv-header__edit" type="button" id="pluvEditBtn" aria-label="Editar pluviômetro">
+        <i class="fa-solid fa-pen"></i>
+      </button>
+    </div>
+  </header>
+
+  <div class="pluv__topbar">
+    <div class="pluv__title">
+      <i class="fa-solid fa-cloud-rain"></i>
+      <span>Pluviômetros</span>
+      <span class="pluv__crumb" id="pluvCrumb">• Destaques</span>
+    </div>
+
+    <div class="pluv__actions">
+      <div class="pluv-filters" role="tablist" aria-label="Filtros de pluviômetros">
+        <button class="pluv-filter is-active" type="button" data-filter="highlights" aria-selected="true">
+          Destaques
+        </button>
+        <button class="pluv-filter" type="button" data-filter="all" aria-selected="false">
+          Todos <span class="pluv-filter__count" data-count="all">0</span>
+        </button>
+        <button class="pluv-filter" type="button" data-filter="rain" aria-selected="false">
+          Chovendo <span class="pluv-filter__count" data-count="rain">0</span>
+        </button>
+        <button class="pluv-filter" type="button" data-filter="offline" aria-selected="false">
+          Offline <span class="pluv-filter__count" data-count="offline">0</span>
+        </button>
+      </div>
+
+      <label class="pluv-search" for="pluvSearchInput" aria-label="Buscar pluviômetro">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input
+          id="pluvSearchInput"
+          type="search"
+          placeholder="Buscar pluviômetro..."
+          autocomplete="off"
+        />
+      </label>
+    </div>
+  </div>
+
+  <!-- Cards do topo -->
+  <div class="pluv-cards" id="pluvCards" aria-label="Lista de pluviômetros"></div>
+
+  <!-- ========= GRÁFICO / IMPACTO ========= -->
+  <section class="rain" aria-label="Impacto de chuva">
+    <header class="rain__head">
+      <div class="rain__left">
+        <div class="rain__title">
+          <i class="fa-solid fa-chart-column"></i>
+          <span>Impacto: Chuva</span>
+        </div>
+
+        <label class="rain__toggle">
+          <input type="checkbox" id="rainShowIrrigation" disabled />
+          <span>Mostrar irrigação</span>
+        </label>
+      </div>
+
+      <div class="rain__right">
+        <button class="rain__btn" type="button" id="rainBtnCalendarView">
+          <i class="fa-solid fa-calendar-days"></i>
+          Ver calendário de chuvas
+        </button>
+
+        <button class="rain__iconbtn" type="button" id="rainBtnCalendar" aria-label="Selecionar período no calendário">
+          <i class="fa-regular fa-calendar"></i>
+        </button>
+
+        <div class="rain__pills" role="tablist" aria-label="Período">
+          <button class="rain__pill is-active" type="button" data-period="24h">24h</button>
+          <button class="rain__pill" type="button" data-period="7d">7d</button>
+          <button class="rain__pill" type="button" data-period="30d">30d</button>
+        </div>
+      </div>
+    </header>
+
+    <div class="rain__meta">
+      <span class="rain__chip" id="rainModeChip">Apenas chuva</span>
+      <span class="rain__chip rain__chip--muted" id="rainScopeChip">Todos os pluviômetros</span>
+      <span class="rain__chip rain__chip--muted" id="rainDateChip">Período: últimas 24h</span>
+    </div>
+
+    <!-- KPIs (iguais ao print) -->
+    <div class="rain__kpis">
+      <div class="rain-kpi rain-kpi--primary">
+        <div class="rain-kpi__t"><i class="fa-solid fa-cloud-rain"></i> Últimas 24h</div>
+        <div class="rain-kpi__v"><span id="rainTotal">—</span> <small>mm</small></div>
+      </div>
+
+      <div class="rain-kpi">
+        <div class="rain-kpi__t"><i class="fa-solid fa-calendar-day"></i> Hoje</div>
+        <div class="rain-kpi__v">—</div>
+      </div>
+
+      <div class="rain-kpi">
+        <div class="rain-kpi__t"><i class="fa-solid fa-calendar"></i> Este mês</div>
+        <div class="rain-kpi__v">—</div>
+      </div>
+
+      <div class="rain-kpi">
+        <div class="rain-kpi__t"><i class="fa-solid fa-chart-line"></i> Total ano</div>
+        <div class="rain-kpi__v">—</div>
+      </div>
+    </div>
+
+    <!-- Gráfico de barras -->
+    <div class="rain-chart" aria-label="Gráfico de chuva">
+      <div class="rain-chart__legend">
+        <span class="legend-dot"></span>
+        <span>Chuva</span>
+      </div>
+
+      <div class="rain-chart__body">
+        <div class="rain-chart__y" aria-hidden="true">
+          <span>16mm</span>
+          <span>12mm</span>
+          <span>8mm</span>
+          <span>4mm</span>
+          <span>0mm</span>
+        </div>
+
+        <div class="rain-chart__plot" id="rainBars"></div>
+      </div>
+
+      <div class="rain-chart__x" id="rainXAxis"></div>
+    </div>
+
+    <!-- Cards abaixo do gráfico -->
+    <section class="pluv-panels" aria-label="Eventos e manutenções">
+      <article class="pluv-panel" aria-labelledby="pluvEventsTitle">
+        <header class="pluv-panel__head">
+          <div class="pluv-panel__title" id="pluvEventsTitle">
+            <i class="fa-solid fa-bolt"></i>
+            <span>Eventos e Rastreabilidade</span>
+          </div>
+          <span class="pluv-panel__badge">6 eventos</span>
+        </header>
+
+        <ol class="pluv-events pluv-scroll">
+          <li class="pluv-event">
+            <div class="pluv-event__dot pluv-event__dot--rain">
+              <i class="fa-solid fa-cloud-rain"></i>
+            </div>
+            <div class="pluv-event__card">
+              <div class="pluv-event__head">
+                <div class="pluv-event__title">Início de chuva detectado</div>
+                <div class="pluv-event__time">06:18 <span>3h atrás</span></div>
+              </div>
+              <div class="pluv-event__desc">Pluviômetro Norte A iniciou registro de precipitação</div>
+              <div class="pluv-event__chips">
+                <span class="pluv-pill pluv-pill--muted">ID: RAIN-2024-0421</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="pluv-event">
+            <div class="pluv-event__dot pluv-event__dot--auto">
+              <i class="fa-solid fa-bolt"></i>
+            </div>
+            <div class="pluv-event__card">
+              <div class="pluv-event__head">
+                <div class="pluv-event__title">Comando automático enviado</div>
+                <div class="pluv-event__time">06:24 <span>3h atrás</span></div>
+              </div>
+              <div class="pluv-event__desc">Pivôs pausados devido à chuva</div>
+              <div class="pluv-event__chips">
+                <span class="pluv-pill">RADIO</span>
+                <span class="pluv-pill pluv-pill--muted">2 pivô(s)</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="pluv-event">
+            <div class="pluv-event__dot pluv-event__dot--ok">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="pluv-event__card">
+              <div class="pluv-event__head">
+                <div class="pluv-event__title">Fim de chuva registrado</div>
+                <div class="pluv-event__time">07:48 <span>2h atrás</span></div>
+              </div>
+              <div class="pluv-event__desc">Total acumulado: 12.5mm em 1h30</div>
+              <div class="pluv-event__chips">
+                <span class="pluv-pill pluv-pill--muted">ID: RAIN-2024-0421</span>
+                <span class="pluv-pill pluv-pill--info">12.5mm</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="pluv-event">
+            <div class="pluv-event__dot pluv-event__dot--info">
+              <i class="fa-solid fa-play"></i>
+            </div>
+            <div class="pluv-event__card">
+              <div class="pluv-event__head">
+                <div class="pluv-event__title">Pivôs retomaram operação</div>
+                <div class="pluv-event__time">07:53 <span>2h atrás</span></div>
+              </div>
+              <div class="pluv-event__desc">Irrigação reiniciada automaticamente</div>
+              <div class="pluv-event__chips">
+                <span class="pluv-pill">4G</span>
+                <span class="pluv-pill pluv-pill--muted">2 pivô(s)</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="pluv-event">
+            <div class="pluv-event__dot pluv-event__dot--warn">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <div class="pluv-event__card">
+              <div class="pluv-event__head">
+                <div class="pluv-event__title">Divergência entre sensores</div>
+                <div class="pluv-event__time">04:18 <span>5h atrás</span></div>
+              </div>
+              <div class="pluv-event__desc">Diferença de 15% detectada entre P1 e P2</div>
+              <div class="pluv-event__chips">
+                <span class="pluv-pill pluv-pill--warn">15% diferença</span>
+              </div>
+            </div>
+          </li>
+
+          <li class="pluv-event">
+            <div class="pluv-event__dot pluv-event__dot--danger">
+              <i class="fa-solid fa-link-slash"></i>
+            </div>
+            <div class="pluv-event__card">
+              <div class="pluv-event__head">
+                <div class="pluv-event__title">Falha de comunicação</div>
+                <div class="pluv-event__time">06:18 <span>27/01</span></div>
+              </div>
+              <div class="pluv-event__desc">Pluviômetro Sul sem comunicação por &gt;24h</div>
+            </div>
+          </li>
+        </ol>
+      </article>
+
+      <article class="pluv-panel" aria-labelledby="pluvMaintTitle">
+        <header class="pluv-panel__head">
+          <div class="pluv-panel__title" id="pluvMaintTitle">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+            <span>Histórico de Manutenções</span>
+          </div>
+          <div class="pluv-panel__badges">
+            <span class="pluv-panel__badge pluv-panel__badge--ok">4 concluídas</span>
+            <span class="pluv-panel__badge pluv-panel__badge--warn">1 atrasadas</span>
+          </div>
+        </header>
+
+        <div class="pluv-maint pluv-scroll">
+          <article class="pluv-maint__item">
+            <div class="pluv-maint__head">
+              <div class="pluv-maint__left">
+                <span class="pluv-tag pluv-tag--programada">Programada</span>
+                <span class="pluv-maint__title">Norte A</span>
+              </div>
+              <span class="pluv-status pluv-status--ok">
+                <i class="fa-solid fa-circle-check"></i> Concluída
+              </span>
+            </div>
+            <div class="pluv-maint__meta">
+              <span><i class="fa-regular fa-calendar"></i> 21/01/2026 • 1 sem. atrás</span>
+              <span><i class="fa-solid fa-user"></i> João Silva</span>
+            </div>
+            <div class="pluv-maint__desc">Limpeza do sensor e calibração realizada</div>
+            <div class="pluv-maint__chips">
+              <span class="pluv-pill pluv-pill--ok"><i class="fa-solid fa-circle-check"></i> Confirmado no dispositivo</span>
+            </div>
+          </article>
+
+          <article class="pluv-maint__item">
+            <div class="pluv-maint__head">
+              <div class="pluv-maint__left">
+                <span class="pluv-tag pluv-tag--preventiva">Preventiva</span>
+                <span class="pluv-maint__title">Norte B</span>
+              </div>
+              <span class="pluv-status pluv-status--ok">
+                <i class="fa-solid fa-circle-check"></i> Concluída
+              </span>
+            </div>
+            <div class="pluv-maint__meta">
+              <span><i class="fa-regular fa-calendar"></i> 15/01/2026 • 1 sem. atrás</span>
+              <span><i class="fa-solid fa-user"></i> Maria Santos</span>
+            </div>
+            <div class="pluv-maint__desc">Verificação de bateria e painel solar</div>
+            <div class="pluv-maint__chips">
+              <span class="pluv-pill pluv-pill--ok"><i class="fa-solid fa-circle-check"></i> Confirmado no dispositivo</span>
+            </div>
+          </article>
+
+          <article class="pluv-maint__item">
+            <div class="pluv-maint__head">
+              <div class="pluv-maint__left">
+                <span class="pluv-tag pluv-tag--corretiva">Corretiva</span>
+                <span class="pluv-maint__title">Sul</span>
+              </div>
+              <span class="pluv-status pluv-status--danger">
+                <i class="fa-solid fa-triangle-exclamation"></i> Atrasada
+              </span>
+            </div>
+            <div class="pluv-maint__meta">
+              <span><i class="fa-regular fa-calendar"></i> 25/01/2026</span>
+              <span><i class="fa-solid fa-user"></i> Carlos Oliveira</span>
+            </div>
+            <div class="pluv-maint__desc">Substituição de bateria necessária</div>
+          </article>
+
+          <article class="pluv-maint__item">
+            <div class="pluv-maint__head">
+              <div class="pluv-maint__left">
+                <span class="pluv-tag pluv-tag--programada">Programada</span>
+                <span class="pluv-maint__title">Leste</span>
+              </div>
+              <span class="pluv-status pluv-status--muted">
+                <i class="fa-regular fa-clock"></i> Pendente
+              </span>
+            </div>
+            <div class="pluv-maint__meta">
+              <span><i class="fa-regular fa-calendar"></i> Agendada: 02/02/2026</span>
+              <span><i class="fa-solid fa-user"></i> João Silva</span>
+            </div>
+          </article>
+
+          <article class="pluv-maint__item">
+            <div class="pluv-maint__head">
+              <div class="pluv-maint__left">
+                <span class="pluv-tag pluv-tag--preventiva">Preventiva</span>
+                <span class="pluv-maint__title">Norte A</span>
+              </div>
+              <span class="pluv-status pluv-status--ok">
+                <i class="fa-solid fa-circle-check"></i> Concluída
+              </span>
+            </div>
+            <div class="pluv-maint__meta">
+              <span><i class="fa-regular fa-calendar"></i> 29/12/2025 • 1 mês(es) atrás</span>
+              <span><i class="fa-solid fa-user"></i> Maria Santos</span>
+            </div>
+            <div class="pluv-maint__desc">Manutenção mensal completa</div>
+            <div class="pluv-maint__chips">
+              <span class="pluv-pill pluv-pill--ok"><i class="fa-solid fa-circle-check"></i> Confirmado no dispositivo</span>
+            </div>
+          </article>
+
+          <article class="pluv-maint__item">
+            <div class="pluv-maint__head">
+              <div class="pluv-maint__left">
+                <span class="pluv-tag pluv-tag--programada">Programada</span>
+                <span class="pluv-maint__title">Norte B</span>
+              </div>
+              <span class="pluv-status pluv-status--ok">
+                <i class="fa-solid fa-circle-check"></i> Concluída
+              </span>
+            </div>
+            <div class="pluv-maint__meta">
+              <span><i class="fa-regular fa-calendar"></i> 07/01/2026 • 3 sem. atrás</span>
+              <span><i class="fa-solid fa-user"></i> Carlos Oliveira</span>
+            </div>
+            <div class="pluv-maint__chips">
+              <span class="pluv-pill pluv-pill--ok"><i class="fa-solid fa-circle-check"></i> Confirmado no dispositivo</span>
+            </div>
+          </article>
+        </div>
+      </article>
+    </section>
+
+    <!-- Relatórios -->
+    <section class="pluv-reports" aria-label="Relatórios">
+      <header class="pluv-reports__head">
+        <div class="pluv-reports__title">
+          <i class="fa-solid fa-file-lines"></i>
+          <span>Relatórios</span>
+        </div>
+
+        <div class="pluv-reports__actions">
+          <button class="pluv-reports__btn pluv-reports__btn--filter" type="button">
+            <i class="fa-solid fa-filter"></i>
+            7 dias
+            <i class="fa-solid fa-chevron-down"></i>
+          </button>
+          <button class="pluv-reports__btn" type="button">
+            <i class="fa-solid fa-file-csv"></i>
+            CSV
+          </button>
+          <button class="pluv-reports__btn" type="button">
+            <i class="fa-solid fa-file-excel"></i>
+            XLSX
+          </button>
+          <button class="pluv-reports__btn" type="button">
+            <i class="fa-solid fa-file-pdf"></i>
+            PDF
+          </button>
+        </div>
+      </header>
+
+      <div class="pluv-reports__tabs" role="tablist" aria-label="Tipos de relatório">
+        <button class="pluv-reports__tab is-active" type="button" role="tab" aria-selected="true">Chuva</button>
+        <button class="pluv-reports__tab" type="button" role="tab" aria-selected="false">Irrigação</button>
+        <button class="pluv-reports__tab" type="button" role="tab" aria-selected="false">Agendamento</button>
+      </div>
+
+      <div class="pluv-table-wrap" role="region" aria-label="Tabela de relatórios">
+        <table class="pluv-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Pluviômetro</th>
+              <th>Precipitação</th>
+              <th>Duração</th>
+              <th>Intensidade Máx.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>21/01/2026</td>
+              <td>Norte A</td>
+              <td><span class="pluv-link">12.5mm</span></td>
+              <td>1h30</td>
+              <td><span class="pluv-pill pluv-pill--info">8.2mm/h</span></td>
+            </tr>
+            <tr>
+              <td>20/01/2026</td>
+              <td>Norte A</td>
+              <td><span class="pluv-link">3.2mm</span></td>
+              <td>45min</td>
+              <td><span class="pluv-pill pluv-pill--muted">2.1mm/h</span></td>
+            </tr>
+            <tr>
+              <td>19/01/2026</td>
+              <td>Norte B</td>
+              <td><span class="pluv-link">8.7mm</span></td>
+              <td>2h15</td>
+              <td><span class="pluv-pill pluv-pill--info">6.4mm/h</span></td>
+            </tr>
+            <tr>
+              <td>18/01/2026</td>
+              <td>Sul</td>
+              <td><span class="pluv-link">15.3mm</span></td>
+              <td>3h</td>
+              <td><span class="pluv-pill pluv-pill--warn">12.1mm/h</span></td>
+            </tr>
+            <tr>
+              <td>17/01/2026</td>
+              <td>Norte A</td>
+              <td><span class="pluv-link">0.8mm</span></td>
+              <td>20min</td>
+              <td><span class="pluv-pill pluv-pill--muted">0.5mm/h</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <footer class="pluv-reports__foot">
+        <span>Mostrando 5 registros</span>
+        <span>Total acumulado: 40.5mm</span>
+      </footer>
+    </section>
+
+    <!-- Popover calendário -->
+    <div class="cal" id="rainCalendar" aria-hidden="true">
+      <div class="cal__card">
+        <aside class="cal__side">
+          <button class="cal__quick" type="button" data-range="1">Último dia</button>
+          <button class="cal__quick" type="button" data-range="7">Últimos 7 dias</button>
+          <button class="cal__quick" type="button" data-range="14">Últimos 14 dias</button>
+          <button class="cal__quick" type="button" data-range="30">Últimos 30 dias</button>
+        </aside>
+
+        <div class="cal__main">
+          <div class="cal__top">
+            <button class="cal__nav" type="button" data-cal-nav="-1" aria-label="Mês anterior">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+
+            <div class="cal__months">
+              <div class="cal__month">
+                <div class="cal__month-title" id="calMonthA">—</div>
+                <div class="cal__grid" id="calGridA"></div>
+              </div>
+              <div class="cal__month">
+                <div class="cal__month-title" id="calMonthB">—</div>
+                <div class="cal__grid" id="calGridB"></div>
+              </div>
+            </div>
+
+            <button class="cal__nav" type="button" data-cal-nav="1" aria-label="Próximo mês">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+
+          <div class="cal__foot">
+            <div class="cal__range" id="calRangeText">Selecione um intervalo</div>
+            <div class="cal__actions">
+              <button class="cal__btn" type="button" id="calCancel">Cancelar</button>
+              <button class="cal__btn cal__btn--primary" type="button" id="calApply">Aplicar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Calendário de Chuvas (modal) -->
+    <div class="rain-cal" id="rainCalModal" aria-hidden="true">
+      <div class="rain-cal__backdrop" data-rain-cal-close></div>
+      <section class="rain-cal__panel" role="dialog" aria-modal="true" aria-labelledby="rainCalTitle">
+        <header class="rain-cal__head">
+          <div class="rain-cal__title">
+            <span class="rain-cal__icon"><i class="fa-solid fa-cloud-rain"></i></span>
+            <div>
+              <div class="rain-cal__title-main" id="rainCalTitle">Calendário de Chuvas</div>
+              <div class="rain-cal__subtitle">Resumo mensal de precipitação</div>
+            </div>
+          </div>
+
+          <div class="rain-cal__actions">
+            <button class="rain-cal__back" type="button" data-rain-cal-close>
+              <i class="fa-solid fa-arrow-left"></i>
+              Voltar ao gráfico
+            </button>
+            <button class="rain-cal__close" type="button" aria-label="Fechar" data-rain-cal-close>
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </header>
+
+        <div class="rain-cal__nav">
+          <button class="rain-cal__nav-btn" type="button" data-rain-cal-nav="-1" aria-label="Mês anterior">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <div class="rain-cal__month" id="rainCalMonth">—</div>
+          <button class="rain-cal__nav-btn" type="button" data-rain-cal-nav="1" aria-label="Próximo mês">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+
+        <div class="rain-cal__stats">
+          <div class="rain-cal__stat">
+            <div class="rain-cal__stat-label">Total do Mês</div>
+            <div class="rain-cal__stat-value" id="rainCalTotal">—</div>
+          </div>
+          <div class="rain-cal__stat">
+            <div class="rain-cal__stat-label">Dias com Chuva</div>
+            <div class="rain-cal__stat-value" id="rainCalDays">—</div>
+          </div>
+          <div class="rain-cal__stat">
+            <div class="rain-cal__stat-label">Média por Dia Chuvoso</div>
+            <div class="rain-cal__stat-value" id="rainCalAvg">—</div>
+          </div>
+        </div>
+
+        <div class="rain-cal__legend">
+          <span>Intensidade:</span>
+          <span class="rain-cal__pill rain-cal__pill--l1">0-5mm</span>
+          <span class="rain-cal__pill rain-cal__pill--l2">5-20mm</span>
+          <span class="rain-cal__pill rain-cal__pill--l3">20-50mm</span>
+          <span class="rain-cal__pill rain-cal__pill--l4">&gt;50mm</span>
+        </div>
+
+        <div class="rain-cal__grid" id="rainCalGrid"></div>
+      </section>
+    </div>
+  </section>
+</section>

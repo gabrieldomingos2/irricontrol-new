@@ -592,7 +592,7 @@ renderStep5(container, state) {
   state.vinculo = state.vinculo || "";
 
   container.innerHTML = `
-    <div class="equip-page">
+    <div class="equip-page equip-page--link">
       <div class="equip-page__title">Vincular equipamento</div>
       <div class="equip-page__sub">Informe a qual equipamento este Irripump será vinculado.</div>
 
