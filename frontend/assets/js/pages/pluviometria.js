@@ -220,10 +220,10 @@
 
   // Dados mock de redundância (1 por pluviômetro)
   const PLUV_REDUNDANCY = {
-    "norte-a": { autoDetect: true, limit: 18, alertAuto: true },
-    "norte-b": { autoDetect: true, limit: 22, alertAuto: true },
-    "sul": { autoDetect: false, limit: 30, alertAuto: false },
-    "leste": { autoDetect: true, limit: 15, alertAuto: true },
+    "norte-a": { limit: 18, alertAuto: true },
+    "norte-b": { limit: 22, alertAuto: true },
+    "sul": { limit: 30, alertAuto: false },
+    "leste": { limit: 15, alertAuto: true },
   };
 
   // seleção: vazio => TODOS
@@ -1055,15 +1055,6 @@
       });
     }
 
-    const select = $("pluvEditSelect");
-    if (select && !select.dataset.bound) {
-      select.dataset.bound = "1";
-      select.addEventListener("change", () => {
-        const id = select.value;
-        if (id) setSettingsFocus(id);
-      });
-    }
-
     const centerBtn = $("pluvEditCenterBtn");
     if (centerBtn && !centerBtn.dataset.bound) {
       centerBtn.dataset.bound = "1";
@@ -1100,6 +1091,14 @@
     if (!document.body.dataset.editSelectBound) {
       document.body.dataset.editSelectBound = "1";
       document.addEventListener("click", (e) => {
+        const pluvOption = e.target.closest("[data-pluv-option]");
+        if (pluvOption) {
+          const id = pluvOption.getAttribute("data-value");
+          if (id) setSettingsFocus(id);
+          closeCustomSelects();
+          return;
+        }
+
         const option = e.target.closest(".pluv-edit__select-option");
         if (option) {
           const menu = option.closest("[data-edit-menu]");
@@ -1115,15 +1114,25 @@
           return;
         }
 
+        const pluvTrigger = e.target.closest("[data-pluv-select-trigger]");
+        if (pluvTrigger) {
+          const wrap = pluvTrigger.closest("[data-pluv-select]");
+          if (!wrap) return;
+          const isOpen = wrap.classList.contains("is-open");
+          closeCustomSelects();
+          wrap.classList.toggle("is-open", !isOpen);
+          pluvTrigger.setAttribute("aria-expanded", !isOpen ? "true" : "false");
+          return;
+        }
+
         const trigger = e.target.closest("[data-edit-select]");
         if (trigger) {
           const wrap = trigger.closest(".pluv-edit__select-field");
           if (!wrap) return;
-          const isOpen = wrap.classList.toggle("is-open");
-          trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
-          document.querySelectorAll(".pluv-edit__select-field").forEach((el) => {
-            if (el !== wrap) el.classList.remove("is-open");
-          });
+          const isOpen = wrap.classList.contains("is-open");
+          closeCustomSelects();
+          wrap.classList.toggle("is-open", !isOpen);
+          trigger.setAttribute("aria-expanded", !isOpen ? "true" : "false");
           return;
         }
 
@@ -1233,6 +1242,7 @@
         if (!range) return;
         const p = getFocusPluvio();
         if (!p) return;
+        if (range.disabled) return;
         const data = PLUV_REDUNDANCY[p.id];
         if (!data) return;
         const value = clampLimit(range.value);
@@ -1252,8 +1262,8 @@
         const data = PLUV_REDUNDANCY[p.id];
         if (!data) return;
         const kind = toggle.getAttribute("data-red-toggle");
-        if (kind === "auto") data.autoDetect = !data.autoDetect;
         if (kind === "alert") data.alertAuto = !data.alertAuto;
+        // Bind do alerta -> habilita/desabilita o slider via re-render.
         renderRedundancy();
       });
     }
@@ -1453,13 +1463,24 @@
   }
 
   function renderEditSelect() {
-    const select = $("pluvEditSelect");
-    if (!select) return;
-    select.innerHTML = PLUVIOS.map((p) => {
+    const btn = $("pluvEditSelectBtn");
+    const menu = $("pluvEditSelectMenu");
+    if (!btn || !menu) return;
+
+    const current = PLUVIOS.find((p) => p.id === settingsFocusId) || PLUVIOS[0];
+    const currentLabel = current ? `${current.nome} • ${current.sub}` : "Selecionar pluviômetro";
+    btn.textContent = currentLabel;
+    btn.dataset.value = current?.id || "";
+
+    menu.innerHTML = PLUVIOS.map((p) => {
       const label = `${p.nome} • ${p.sub}`;
-      return `<option value="${p.id}">${label}</option>`;
+      const isActive = current && p.id === current.id;
+      return `
+        <button class="pluv-edit__select-option ${isActive ? "is-active" : ""}" type="button" data-pluv-option data-value="${p.id}">
+          ${label}
+        </button>
+      `;
     }).join("");
-    if (settingsFocusId) select.value = settingsFocusId;
   }
 
   function formatLatLng(lat, lng) {
@@ -1557,6 +1578,8 @@
       wrap.classList.remove("is-open");
       const btn = wrap.querySelector("[data-edit-select]");
       if (btn) btn.setAttribute("aria-expanded", "false");
+      const pluvBtn = wrap.querySelector("[data-pluv-select-trigger]");
+      if (pluvBtn) pluvBtn.setAttribute("aria-expanded", "false");
     });
   }
 
@@ -1974,36 +1997,36 @@
     if (!data) return;
 
     const limit = clampLimit(data.limit);
+    // Toggle superior removido: alerta automático ? o controle mestre da redundância.
+    const isAlertOn = !!data.alertAuto;
+    const hintText = isAlertOn
+      ? "Alertar quando a diferença entre sensores exceder este limite"
+      : "Ative o alerta para definir o limite de divergência";
+    const disabledClass = isAlertOn ? "" : "is-disabled";
+    const disabledAttr = isAlertOn ? "" : "disabled";
 
     host.innerHTML = `
       <div class="pluv-red">
-        <div class="pluv-red__row">
-          <div>
-            <div class="pluv-red__title">Comparação entre sensores</div>
-            <div class="pluv-red__sub">Detectar divergências automaticamente</div>
-          </div>
-          <button class="pluv-switch ${data.autoDetect ? "is-on" : ""}" type="button" data-red-toggle="auto"></button>
-        </div>
-
-        <div class="pluv-red__row pluv-red__row--stack">
-          <div class="pluv-red__label">Limite de divergência</div>
-          <div class="pluv-red__slider">
-            <input type="range" min="10" max="99" step="1" value="${limit}" data-red-range style="--red-fill: ${limit}%;" />
-            <span class="pluv-red__value" data-red-value>${limit}%</span>
-          </div>
-          <div class="pluv-red__hint">
-            Alertar quando a diferença entre sensores ultrapassar este valor
-          </div>
-        </div>
-
-        <div class="pluv-red__row pluv-red__alert">
-          <div class="pluv-red__alert-left">
-            <span class="pluv-red__alert-ico"><i class="fa-solid fa-triangle-exclamation"></i></span>
-            <div>
-              <div class="pluv-red__title">Alerta automático</div>
+        <div class="pluv-red__row pluv-red__row--main">
+          <div class="pluv-red__control ${disabledClass}">
+            <div class="pluv-red__label">Limite de divergência</div>
+            <div class="pluv-red__slider">
+              <input type="range" min="0" max="100" step="1" value="${limit}" data-red-range style="--red-fill: ${limit}%;" ${disabledAttr} />
+              <span class="pluv-red__value" data-red-value>${limit}%</span>
             </div>
+            <div class="pluv-red__hint" data-red-hint>${hintText}</div>
           </div>
-          <button class="pluv-switch ${data.alertAuto ? "is-on" : ""}" type="button" data-red-toggle="alert"></button>
+
+          <div class="pluv-red__alert">
+            <div class="pluv-red__alert-left">
+              <span class="pluv-red__alert-ico"><i class="fa-solid fa-triangle-exclamation"></i></span>
+              <div>
+                <div class="pluv-red__title">Alerta automático</div>
+                <div class="pluv-red__sub">quando exceder o limite</div>
+              </div>
+            </div>
+            <button class="pluv-switch ${isAlertOn ? "is-on" : ""}" type="button" data-red-toggle="alert" aria-pressed="${isAlertOn ? "true" : "false"}"></button>
+          </div>
         </div>
       </div>
     `;

@@ -9,8 +9,11 @@
 
     <div class="pluv-edit__actions">
       <div class="pluv-edit__select-wrap">
-        <select class="pluv-edit__select" id="pluvEditSelect" aria-label="Selecionar pluviômetro"></select>
-        <i class="fa-solid fa-chevron-down"></i>
+        <div class="pluv-edit__select-field" data-pluv-select>
+          <button class="pluv-edit__select-btn" type="button" id="pluvEditSelectBtn" data-pluv-select-trigger aria-expanded="false" aria-label="Selecionar pluviômetro"></button>
+          <i class="fa-solid fa-chevron-down"></i>
+          <div class="pluv-edit__select-menu" role="listbox" id="pluvEditSelectMenu" data-pluv-menu="pluvio"></div>
+        </div>
       </div>
       <button class="pluv-edit__save" type="button">
         <i class="fa-solid fa-floppy-disk"></i>

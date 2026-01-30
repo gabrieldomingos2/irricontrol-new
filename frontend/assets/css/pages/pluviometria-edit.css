@@ -75,6 +75,11 @@ body.is-pluviometria-edit .main--map{
   appearance: none;
   outline: none;
 }
+.pluv-edit__select option:checked,
+.pluv-edit__select option:hover{
+  background: #16a34a;
+  color: #fff;
+}
 .pluv-edit__select-wrap i{
   position:absolute;
   right: 10px;
@@ -459,6 +464,9 @@ body.is-pluviometria-edit .main--map{
   gap: 6px;
   font-size: 12px;
   color:#0f172a;
+}
+.pluv-edit__check input{
+  accent-color: #16a34a;
 }
 
 /* Timeline de manutenção (somente na edição) */
