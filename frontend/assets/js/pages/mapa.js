@@ -48,19 +48,37 @@
     }, 1200);
   };
 
+  let wheelMode = "ctrl";
+  const applyWheelMode = () => {
+    if (wheelMode === "ctrl") {
+      map.scrollWheelZoom.disable();
+    } else {
+      map.scrollWheelZoom.enable();
+    }
+  };
+  applyWheelMode();
+
+  window.icMapSetWheelMode = (mode) => {
+    wheelMode = mode === "free" ? "free" : "ctrl";
+    applyWheelMode();
+  };
+
   el.addEventListener("wheel", (e) => {
-    if (!e.ctrlKey) showZoomHint();
+    if (wheelMode === "ctrl" && !e.ctrlKey) showZoomHint();
   }, { passive: true });
 
   window.addEventListener("keydown", (e) => {
+    if (wheelMode !== "ctrl") return;
     if (e.key === "Control") map.scrollWheelZoom.enable();
   });
 
   window.addEventListener("keyup", (e) => {
+    if (wheelMode !== "ctrl") return;
     if (e.key === "Control") map.scrollWheelZoom.disable();
   });
 
   window.addEventListener("blur", () => {
+    if (wheelMode !== "ctrl") return;
     map.scrollWheelZoom.disable();
   });
 

@@ -291,7 +291,23 @@
         </div>
       </aside>
 
-      <div id="map" class="map"></div>
+      <div id="map" class="map">
+        <div class="pluv-mapbar" aria-label="Período e relatório de pluviometria">
+          <div class="pluv-mapbar__period" role="group" aria-label="Período">
+            <span class="pluv-mapbar__label">Período</span>
+            <button class="pluv-mapbar__range" type="button" aria-label="Selecionar período">
+              <span class="pluv-mapbar__range-start">29/01/2026</span>
+              <span class="pluv-mapbar__sep">&rarr;</span>
+              <span class="pluv-mapbar__range-end">30/01/2026</span>
+              <i class="fa-solid fa-calendar-days"></i>
+            </button>
+          </div>
+          <button class="pluv-mapbar__report" type="button">
+            <i class="fa-solid fa-eye"></i>
+            Dados de pluviometria
+          </button>
+        </div>
+      </div>
       <div id="pageSlot" aria-live="polite"></div>
     </main>
 

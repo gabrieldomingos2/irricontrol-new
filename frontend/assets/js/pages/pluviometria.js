@@ -6,7 +6,7 @@
   const PLUVIOS = [
     {
       id: "norte-a",
-      nome: "Norte A",
+      nome: "Pluviômetro Norte A",
       sub: "Talhão 1 - Soja",
       pivos: ["Pivô Norte A", "Pivô Norte B"],
       lat: -16.7672,
@@ -33,7 +33,7 @@
     },
     {
       id: "norte-b",
-      nome: "Norte B",
+      nome: "Pluviômetro Norte B",
       sub: "Talhão 2 - Milho",
       pivos: ["Pivô Norte B"],
       lat: -16.7619,
@@ -60,7 +60,7 @@
     },
     {
       id: "sul",
-      nome: "Sul",
+      nome: "Pluviômetro Sul",
       sub: "Talhão 3 - Algodão",
       pivos: ["Pivô Sul"],
       lat: -16.7744,
@@ -77,7 +77,7 @@
       alimentacaoEstado: "Aten\u00e7\u00e3o",
       unidade: "mm",
       uso: { irrigacao: false, alertas: true, relatorios: true },
-      model: "Acurite",
+      model: "Davis",
       radioCentral: "0013A20041F0BC0C",
       radioControlador: "0013A200422E3C4B",
       radioGps: "0013A200422E7D7C",
@@ -87,7 +87,7 @@
     },
     {
       id: "leste",
-      nome: "Leste",
+      nome: "Pluviômetro Leste",
       sub: "Talhão 4 - Soja",
       pivos: ["Pivô Leste"],
       lat: -16.7698,
@@ -205,7 +205,7 @@
       thresholdMinMinutes: 10,
     },
     "sul": {
-      model: "Acurite",
+      model: "Davis",
       pulse: "0.200",
       thresholdMin: 0.8,
       thresholdMinMinutes: 20,
@@ -230,19 +230,33 @@
   const selected = new Set();
   let layer = null;
 
+  function updateSelectionClasses() {
+    const body = document.body;
+    const hasSelection = selected.size > 0;
+    const singleSelection = selected.size === 1;
+    body.classList.toggle("pluv-has-selection", hasSelection);
+    body.classList.toggle("pluv-has-single-selection", singleSelection);
+  }
+
   // filtros e expansão dos cards
   let pluvFilter = "highlights"; // highlights | all | rain | offline
   let pluvSearch = "";
+  let maintFilter = null;
   const expanded = new Set();
 
   // estado do gráfico/calendário
   let rainPeriod = "24h"; // 24h | 7d | 30d
-  let calAnchor = new Date(); // mês base do popover
-  let calStart = null; // Date
-  let calEnd = null; // Date
+  const INITIAL_PERIOD_START = new Date(2026, 0, 29);
+  const INITIAL_PERIOD_END = new Date(2026, 0, 30);
+  let calAnchor = new Date(INITIAL_PERIOD_START); // mês base do popover
+  let calStart = new Date(INITIAL_PERIOD_START); // Date
+  let calEnd = new Date(INITIAL_PERIOD_END); // Date
   let rainBound = false; // evita duplicar listeners
   let rainCalBound = false;
-  let rainCalState = { year: new Date().getFullYear(), month: new Date().getMonth() };
+  let rainCalState = {
+    year: INITIAL_PERIOD_START.getFullYear(),
+    month: INITIAL_PERIOD_START.getMonth(),
+  };
   const rainCalCache = new Map();
   let clampBound = false;
   let clampTimer = null;
@@ -267,6 +281,101 @@
   let editMap = null;
   let editMarker = null;
 
+  let rainCalendarAnchor = null;
+
+  function positionRainCalendar(anchor) {
+    const cal = $("rainCalendar");
+    if (!cal || !anchor) return;
+    const btnRect = anchor.getBoundingClientRect();
+    const calRect = cal.getBoundingClientRect();
+    const offsetY = 8;
+    const maxTop = window.innerHeight - calRect.height - 8;
+    const maxLeft = window.innerWidth - calRect.width - 8;
+    const top = Math.min(maxTop, btnRect.bottom + offsetY);
+    const left = Math.min(maxLeft, btnRect.left);
+    cal.style.top = `${Math.max(8, top)}px`;
+    cal.style.left = `${Math.max(8, left)}px`;
+  }
+
+  function openCalendarAt(anchor) {
+    rainCalendarAnchor = anchor;
+    if (anchor.closest("#map")) {
+      openPluvPanel();
+    }
+    toggleCalendar(true);
+    requestAnimationFrame(() => positionRainCalendar(anchor));
+  }
+
+  function openPluvPanel() {
+    if (!document.body.classList.contains("pluv-panel-open")) {
+      document.body.classList.add("pluv-panel-open");
+    }
+    window.icMapSetWheelMode?.("ctrl");
+    const target = $("pluvPanel") || $("pageSlot");
+    if (target) {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }
+
+  function resetPluvPanelState() {
+    document.body.classList.remove("pluv-panel-open");
+    window.icMapSetWheelMode?.("free");
+  }
+
+  function bindPluvMapbar() {
+    const button = document.querySelector(".pluv-mapbar__report");
+    if (!button || button.dataset.bound) return;
+    button.dataset.bound = "1";
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      openPluvPanel();
+    });
+
+    const range = document.querySelector(".pluv-mapbar__range");
+    if (range && !range.dataset.bound) {
+      range.dataset.bound = "1";
+      range.addEventListener("click", (event) => {
+        event.preventDefault();
+        openCalendarAt(range);
+      });
+    }
+  }
+
+  function formatPeriodLabel() {
+    if (calStart && calEnd) {
+      return `${formatDateBR(calStart)} → ${formatDateBR(calEnd)}`;
+    }
+    return "Últimas 24h";
+  }
+
+  function updatePeriodDisplays() {
+    const startLabelEl = document.querySelector(".pluv-mapbar__range-start");
+    const endLabelEl = document.querySelector(".pluv-mapbar__range-end");
+    if (startLabelEl && endLabelEl) {
+      startLabelEl.textContent = calStart ? formatDateBR(calStart) : "—";
+      endLabelEl.textContent = calEnd ? formatDateBR(calEnd) : "—";
+    }
+
+    const reportsLabel = document.querySelector(".pluv-reports__filter-label");
+    if (reportsLabel) {
+      reportsLabel.textContent = `Período: ${formatPeriodLabel()}`;
+    }
+    const rainLabel = document.querySelector(".rain__period-label");
+    if (rainLabel) {
+      rainLabel.textContent = `Período: ${formatPeriodLabel()}`;
+    }
+  }
+
+  function bindReportFilter() {
+    const filter = document.querySelector(".pluv-reports__btn--filter");
+    if (!filter || filter.dataset.bound) return;
+    filter.dataset.bound = "1";
+    filter.addEventListener("click", (event) => {
+      event.preventDefault();
+      openCalendarAt(filter);
+    });
+  }
+
   function isAllMode() {
     return selected.size === 0;
   }
@@ -275,11 +384,42 @@
     return isAllMode() ? PLUVIOS : PLUVIOS.filter((p) => selected.has(p.id));
   }
 
-  function statusIcon(p) {
-    if (p.semComunicacao) return "fa-triangle-exclamation";
-    if (p.status === "rain") return "fa-cloud-rain";
-    if (p.status === "dry") return "fa-sun";
-    return "fa-cloud";
+  function rainIconSvg() {
+    return `
+      <svg class="pluv-rain-icon" viewBox="0 0 48 48" aria-hidden="true" focusable="false">
+        <g class="pluv-rain-icon__cloud">
+          <circle cx="18" cy="22" r="8"></circle>
+          <circle cx="28" cy="18" r="10"></circle>
+          <circle cx="36" cy="23" r="7"></circle>
+          <rect x="12" y="22" width="28" height="10" rx="5"></rect>
+        </g>
+        <g class="pluv-rain-icon__drops">
+          <path d="M0 0c-2.2 3-3.2 4.9-3.2 6.7a3.2 3.2 0 0 0 6.4 0c0-1.8-1-3.7-3.2-6.7z" transform="translate(16 31)"></path>
+          <path d="M0 0c-2.2 3-3.2 4.9-3.2 6.7a3.2 3.2 0 0 0 6.4 0c0-1.8-1-3.7-3.2-6.7z" transform="translate(25 33) scale(0.9)"></path>
+          <path d="M0 0c-2.2 3-3.2 4.9-3.2 6.7a3.2 3.2 0 0 0 6.4 0c0-1.8-1-3.7-3.2-6.7z" transform="translate(34 31.5) scale(0.85)"></path>
+        </g>
+      </svg>
+    `;
+  }
+
+  function statusIconMarkup(p) {
+    if (p.semComunicacao) return '<i class="fa-solid fa-triangle-exclamation"></i>';
+    if (p.status === "rain") return rainIconSvg();
+    if (p.status === "dry") return '<i class="fa-solid fa-sun"></i>';
+    return '<i class="fa-solid fa-cloud"></i>';
+  }
+
+  function groupIconMarkup(icon) {
+    if (icon === "fa-cloud-rain") return rainIconSvg();
+    return `<i class="fa-solid ${icon}"></i>`;
+  }
+
+  function hydrateRainIcons(root) {
+    const host = root || document;
+    if (!host || !host.querySelectorAll) return;
+    host.querySelectorAll("i.fa-cloud-rain").forEach((el) => {
+      el.outerHTML = rainIconSvg();
+    });
   }
 
   function nowIconStyle(p) {
@@ -376,10 +516,20 @@
     return "";
   }
 
+  function metaLine(text) {
+    return `<span class="pluv-card__meta-line">${text}</span>`;
+  }
+
   function statusLine(p) {
-    if (isOffline(p)) return p.updated || "Offline";
-    if (p.statusLabel && p.statusMeta) return `${p.statusLabel} • ${p.statusMeta}`;
-    return p.statusLabel || p.statusMeta || "—";
+    if (isOffline(p)) {
+      return `${metaLine("Sem comunicação")}${metaLine(p.updated || "Offline")}`;
+    }
+    const { statusLabel, statusMeta } = p;
+    if (statusLabel && statusMeta) {
+      return `${metaLine(statusLabel)}${metaLine(statusMeta)}`;
+    }
+    const text = statusLabel || statusMeta || "—";
+    return metaLine(text);
   }
 
   function renderCard(p) {
@@ -400,7 +550,7 @@
       <article class="pluv-card ${tone} ${isSelected ? "is-selected" : ""} ${isOpen ? "is-open" : ""}" data-pluv-card data-id="${p.id}" aria-expanded="${isOpen}">
         <div class="pluv-card__row">
           <div class="pluv-card__icon">
-            <i class="fa-solid ${statusIcon(p)}"></i>
+            ${statusIconMarkup(p)}
           </div>
           <div class="pluv-card__main">
             <div class="pluv-card__title">
@@ -446,7 +596,7 @@
     return `
       <section class="pluv-group ${kind ? `pluv-group--${kind}` : ""}">
         <header class="pluv-group__head">
-          <span class="pluv-group__icon"><i class="fa-solid ${icon}"></i></span>
+          <span class="pluv-group__icon">${groupIconMarkup(icon)}</span>
           <span>${title}</span>
           <span class="pluv-group__count">(${items.length})</span>
         </header>
@@ -458,6 +608,7 @@
   }
 
   function renderCards() {
+    updateSelectionClasses();
     const host = $("pluvCards");
     if (!host) return;
 
@@ -489,6 +640,18 @@
       if (!id) return;
 
       if (toggle) {
+        if (e.ctrlKey || e.metaKey) {
+          const ids = list.map((p) => p.id);
+          const allOpen = ids.length > 0 && ids.every((pid) => expanded.has(pid));
+          if (allOpen) {
+            ids.forEach((pid) => expanded.delete(pid));
+          } else {
+            ids.forEach((pid) => expanded.add(pid));
+          }
+          renderCards();
+          return;
+        }
+
         const isOpen = card.classList.toggle("is-open");
         card.setAttribute("aria-expanded", isOpen ? "true" : "false");
         const btn = card.querySelector("[data-card-toggle]");
@@ -498,8 +661,18 @@
         return;
       }
 
-      if (selected.has(id)) selected.delete(id);
-      else selected.add(id);
+      const ctrl = e.ctrlKey || e.metaKey;
+      if (ctrl) {
+        if (selected.has(id)) selected.delete(id);
+        else selected.add(id);
+      } else {
+        if (selected.size === 1 && selected.has(id)) {
+          selected.clear();
+        } else {
+          selected.clear();
+          selected.add(id);
+        }
+      }
 
       renderCards();
       renderData();
@@ -606,6 +779,50 @@
     renderRainChart(); // 🔥 atualiza gráfico também
   }
 
+  function syncMaintFilterUI() {
+    const badges = document.querySelectorAll("[data-maint-filter]");
+    badges.forEach((badge) => {
+      const value = badge.getAttribute("data-maint-filter");
+      const isActive = value && maintFilter === value;
+      badge.classList.toggle("is-active", isActive);
+      badge.setAttribute("aria-pressed", isActive ? "true" : "false");
+    });
+
+    const items = document.querySelectorAll(".pluv-maint__item");
+    items.forEach((item) => {
+      const status = item.getAttribute("data-status");
+      if (!maintFilter || !status) {
+        item.hidden = false;
+        return;
+      }
+      item.hidden = status !== maintFilter;
+    });
+  }
+
+  function setMaintFilter(value) {
+    const next = maintFilter === value ? null : value;
+    if (next === maintFilter) return;
+    maintFilter = next;
+    syncMaintFilterUI();
+  }
+
+  function bindMaintFilters() {
+    const wrap = document.querySelector(".pluv-panel__badges");
+    if (!wrap) return;
+    if (!wrap.dataset.bound) {
+      wrap.dataset.bound = "1";
+      wrap.addEventListener("click", (event) => {
+        const btn = event.target.closest("[data-maint-filter]");
+        if (!btn) return;
+        const filter = btn.getAttribute("data-maint-filter");
+        if (!filter) return;
+        event.preventDefault();
+        setMaintFilter(filter);
+      });
+    }
+    syncMaintFilterUI();
+  }
+
   function bindPluvFilters() {
     const filterWrap = document.querySelector(".pluv-filters");
     if (filterWrap) {
@@ -639,6 +856,7 @@
     slot.innerHTML = html;
 
     bindPluvFilters();
+    bindMaintFilters();
 
     bindSettingsUI();
     initSettingsFocus();
@@ -663,15 +881,18 @@
     document.body.classList.remove("is-pluviometria-edit");
     document.body.classList.remove("pluv-settings-open");
     document.body.classList.remove("rain-cal-open");
+    resetPluvPanelState();
 
     const mapCard = $("mapCard");
     if (mapCard) mapCard.style.display = "none";
 
     pluvFilter = "highlights";
     pluvSearch = "";
+    maintFilter = null;
     expanded.clear();
 
     await mountPanel();
+    hydrateRainIcons($("pluvPanel") || document);
 
     syncSelectionUI();
     const searchInput = $("pluvSearchInput");
@@ -685,6 +906,9 @@
     renderRainChart();
     bindClampPanels();
     scheduleClampPanels();
+    bindPluvMapbar();
+    bindReportFilter();
+    updatePeriodDisplays();
 
     const map = window.icMap;
     if (map && typeof map.invalidateSize === "function") {
@@ -863,6 +1087,7 @@
     if (!cal) return;
     cal.setAttribute("aria-hidden", open ? "false" : "true");
     if (open) renderCalendar();
+    if (open && rainCalendarAnchor) requestAnimationFrame(() => positionRainCalendar(rainCalendarAnchor));
   }
 
   function monthTitle(d) {
@@ -968,31 +1193,19 @@
     if (rainBound) return; // não duplica
     rainBound = true;
 
-    // pills (delegação: funciona mesmo após reinjetar HTML)
-    document.addEventListener("click", (e) => {
-      const pill = e.target.closest(".rain__pill");
-      if (!pill) return;
+    const periodBtn = document.querySelector(".rain__period-btn");
+    if (periodBtn && !periodBtn.dataset.bound) {
+      periodBtn.dataset.bound = "1";
+      periodBtn.addEventListener("click", (event) => {
+        event.preventDefault();
+        toggleCalendar(true);
+      });
+    }
 
-      document.querySelectorAll(".rain__pill").forEach((b) => b.classList.remove("is-active"));
-      pill.classList.add("is-active");
-
-      rainPeriod = pill.getAttribute("data-period") || "24h";
-      calStart = null;
-      calEnd = null;
-      renderRainChart();
-    });
-
-    // botões calendário
     document.addEventListener("click", (e) => {
       const btnView = e.target.closest("#rainBtnCalendarView");
       if (btnView) {
-        openRainCalendar();
-        return;
-      }
-
-      const btnCal = e.target.closest("#rainBtnCalendar");
-      if (btnCal) {
-        toggleCalendar(true);
+        openCalendarAt(btnView);
         return;
       }
 
@@ -1001,36 +1214,7 @@
         const dir = Number(nav.getAttribute("data-cal-nav") || "0");
         calAnchor = addMonths(calAnchor, dir);
         renderCalendar();
-        return;
-      }
-
-      const quick = e.target.closest(".cal__quick");
-      if (quick) {
-        const days = Number(quick.getAttribute("data-range") || "1");
-        const end = new Date();
-        const start = new Date();
-        start.setDate(end.getDate() - (days - 1));
-        calStart = start;
-        calEnd = end;
-        renderCalendar();
-        return;
-      }
-
-      const cancel = e.target.closest("#calCancel");
-      if (cancel) {
-        toggleCalendar(false);
-        return;
-      }
-
-      const apply = e.target.closest("#calApply");
-      if (apply) {
-        if (calStart && calEnd) {
-          document.querySelectorAll(".rain__pill").forEach((b) => b.classList.remove("is-active"));
-          toggleCalendar(false);
-          renderRainChart();
-        } else {
-          alert("Selecione o início e o fim do período.");
-        }
+        requestAnimationFrame(() => positionRainCalendar(rainCalendarAnchor));
         return;
       }
     });
@@ -1038,7 +1222,7 @@
     // fechar popover clicando fora
     document.addEventListener("click", (e) => {
       const cal = $("rainCalendar");
-      const btn = $("rainBtnCalendar");
+      const btn = $("rainBtnCalendarView");
       if (!cal || cal.getAttribute("aria-hidden") === "true") return;
       if (cal.contains(e.target) || btn?.contains(e.target)) return;
       toggleCalendar(false);
@@ -1299,6 +1483,38 @@
         const dir = Number(nav.getAttribute("data-rain-cal-nav") || "0");
         rainCalState = shiftMonth(rainCalState.year, rainCalState.month, dir);
         renderRainCalendar();
+        return;
+      }
+
+      const quick = e.target.closest(".cal__quick");
+      if (quick) {
+        const days = Number(quick.getAttribute("data-range") || "1");
+        const end = new Date();
+        const start = new Date();
+        start.setDate(end.getDate() - (days - 1));
+        calStart = start;
+        calEnd = end;
+        renderCalendar();
+        updatePeriodDisplays();
+        renderRainChart();
+        return;
+      }
+
+      const cancel = e.target.closest("#calCancel");
+      if (cancel) {
+        closeRainCalendar();
+        return;
+      }
+
+      const apply = e.target.closest("#calApply");
+      if (apply) {
+        if (calStart && calEnd) {
+          updatePeriodDisplays();
+          renderRainChart();
+          closeRainCalendar();
+        } else {
+          alert("Selecione o início e o fim do período.");
+        }
         return;
       }
     });
@@ -2109,9 +2325,11 @@
     },
 
     close() {
+      resetPluvPanelState();
       document.body.classList.remove("is-pluviometria");
       document.body.classList.remove("is-pluviometria-edit");
       document.body.classList.remove("pluv-has-selection");
+      document.body.classList.remove("pluv-has-single-selection");
       document.body.classList.remove("pluv-settings-open");
       document.body.classList.remove("rain-cal-open");
       selected.clear();
